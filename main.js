@@ -103,7 +103,11 @@ function updateMeta(service) {
   meta.content = description
 }
 
+let interactionController
 function wireInteractions() {
+  interactionController?.abort()
+  interactionController = new AbortController()
+  const options = { signal: interactionController.signal }
   const toggle = document.querySelector('.menu-toggle')
   const menu = document.querySelector('.mobile-menu')
   const backdrop = document.querySelector('.menu-backdrop')
@@ -112,15 +116,17 @@ function wireInteractions() {
     toggle.setAttribute('aria-expanded', String(open)); toggle.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单')
     menu.hidden = !open; backdrop.hidden = !open; document.body.classList.toggle('menu-open', open)
   }
-  toggle?.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true'))
-  backdrop?.addEventListener('click', () => setMenu(false))
-  menu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)))
-  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setMenu(false) })
-  window.addEventListener('resize', () => { if (window.innerWidth > 760) setMenu(false) })
+  setMenu(false)
+  toggle?.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true'), options)
+  backdrop?.addEventListener('click', () => setMenu(false), options)
+  menu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false), options))
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setMenu(false) }, options)
+  window.addEventListener('resize', () => { if (window.innerWidth > 760) setMenu(false) }, options)
+  window.addEventListener('pageshow', () => setMenu(false), options)
   document.querySelectorAll('.copy-contact').forEach((button) => button.addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(button.dataset.copy); button.innerHTML = '已复制微信号 <span>✓</span>' } catch { button.innerHTML = `微信：${button.dataset.copy}` }
-  }))
-  document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => setMenu(false)))
+  }, options))
+  document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => setMenu(false), options))
 }
 
 async function start() {
@@ -132,6 +138,7 @@ async function start() {
   const match = location.pathname.match(/^\/services\/([^/]+)\/?$/)
   // Keep the page usable while requesting prices; do not flash outdated prices.
   app.innerHTML = homePage()
+  wireInteractions()
   const status = document.createElement('p')
   status.className = 'section-shell'
   status.setAttribute('role', 'status')
