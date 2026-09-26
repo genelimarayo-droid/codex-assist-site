@@ -1,1 +1,1 @@
-/* /index.html 200
+# Cloudflare Pages automatically falls back to index.html for SPA routes.
