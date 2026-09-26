@@ -1,13 +1,23 @@
 import { siteConfig } from './src/config/site.js'
-import { serviceById, services } from './src/data/services.js'
+import { services as localServices } from './src/data/services.js'
+import { publicSupabase, readServices } from './src/lib/supabase.js'
+import { normalizeService } from './src/lib/service-model.js'
+import { escapeTree } from './src/lib/html.js'
+
+let services = []
+let dataNotice = ''
 
 const app = document.querySelector('#app')
 const contact = siteConfig.contact
 
 const icon = (name) => `<span class="feature-icon" aria-hidden="true">${name}</span>`
-const price = (service) => service.price === null
-  ? '<span class="price-consult">咨询</span>'
-  : `<span class="price-currency">¥</span>${service.price.toFixed(1)}<small> / ${service.priceUnit}</small>`
+const price = (service) => {
+  const type = service.priceType || (service.price === null ? 'consultation' : 'fixed')
+  if (type === 'hidden') return ''
+  if (type === 'free') return '<span class="price-consult">免费</span>'
+  if (type === 'consultation' || !Number.isFinite(service.price)) return '<span class="price-consult">咨询</span>'
+  return `${Number.isFinite(service.originalPrice) && service.originalPrice > service.price ? `<del style="font-size:16px;color:#758197">¥${service.originalPrice}</del> ` : ''}<span class="price-currency">¥</span>${new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 1, maximumFractionDigits: 2 }).format(service.price)}<small> / ${service.priceUnit}</small>`
+}
 
 function header(active = 'home') {
   return `<header class="site-header">
@@ -32,13 +42,13 @@ function footer() {
 }
 
 function serviceCard(service) {
-  return `<article class="service-card ${service.id === 'plus-account' ? 'featured' : ''}">
+  return `<article class="service-card ${service.recommended ? 'featured' : ''}">
     <div class="card-top"><span class="card-number">${service.number}</span><span class="badge">${service.badge}</span></div>
     <div class="card-title"><h3>${service.name}</h3><span class="card-arrow">↗</span></div>
-    <p>${service.description}</p>
+    ${service.subtitle ? `<p>${service.subtitle}</p>` : ''}<p>${service.description}</p>
     <div class="card-price">${price(service)}</div>
-    <div class="card-audience"><span class="label">适合</span>${service.suitableFor[0]}</div>
-    <a class="card-link" href="/services/${service.id}">了解方案 <span>→</span></a>
+    <div class="card-audience"><span class="label">适合</span>${service.suitableFor[0] || '欢迎咨询'}</div>
+    <a class="card-link" href="/services/${encodeURIComponent(service.id)}">了解方案 <span>→</span></a>
   </article>`
 }
 
@@ -113,8 +123,50 @@ function wireInteractions() {
   document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => setMenu(false)))
 }
 
-const match = window.location.pathname.match(/^\/services\/([^/]+)\/?$/)
-const selectedService = match ? serviceById(match[1]) : null
-app.innerHTML = selectedService ? detailPage(selectedService) : homePage()
-updateMeta(selectedService)
-wireInteractions()
+async function start() {
+  if (/^\/admin(?:\/|$)/.test(location.pathname)) {
+    const { mountAdmin } = await import('./src/admin.js')
+    await mountAdmin(app)
+    return
+  }
+  const match = location.pathname.match(/^\/services\/([^/]+)\/?$/)
+  // Keep the page usable while requesting prices; do not flash outdated prices.
+  app.innerHTML = homePage()
+  const status = document.createElement('p')
+  status.className = 'section-shell'
+  status.setAttribute('role', 'status')
+  status.textContent = '正在加载最新服务信息…'
+  document.querySelector('.service-grid').before(status)
+  try {
+    if (!publicSupabase) throw new Error('未配置公开数据连接')
+    const rows = await readServices(publicSupabase)
+    services = rows.map(normalizeService).filter(service => service.published)
+    if (!services.length) dataNotice = '暂无上架服务，欢迎联系咨询。'
+  } catch {
+    // Retain the local content for availability, but never advertise stale prices as current.
+    services = localServices.map(s => ({ ...s, price: null, priceType: 'consultation', recommended: s.id === 'plus-account' }))
+    dataNotice = '最新价格暂时无法加载，具体价格请咨询。刷新页面可重试。'
+  }
+  const selectedService = match ? services.find(s => encodeURIComponent(s.id) === match[1]) : null
+  const safeServices = services.map(escapeTree)
+  services = safeServices
+  app.innerHTML = match
+    ? (selectedService ? detailPage(escapeTree(selectedService)) : `${header()}<main class="section-shell" style="padding:80px 0"><h1>此服务不存在或已下架</h1><a href="/">返回首页</a></main>${footer()}`)
+    : homePage()
+  if (dataNotice) {
+    const notice = document.createElement('p')
+    notice.className = 'section-shell'; notice.setAttribute('role', 'status'); notice.textContent = dataNotice
+    document.querySelector('main').prepend(notice)
+  }
+  // Remove fixed chooser links for services that are no longer published.
+  document.querySelectorAll('.choice').forEach(choice => {
+    const id = choice.querySelector('a').getAttribute('href').split('/').pop()
+    if (!services.some(service => service.id === id)) choice.remove()
+  })
+  updateMeta(selectedService)
+  wireInteractions()
+  if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView()
+}
+start().catch(() => {
+  app.innerHTML = '<main class="section-shell" style="padding:60px 0"><h1>页面暂时无法加载</h1><p>请刷新重试。</p><a href="/">返回首页</a></main>'
+})

@@ -26,7 +26,10 @@ Vercel 的构建设置：
 
 ## 内容维护
 
-- 服务名称、价格、说明、FAQ：`src/data/services.js`
+价格、名称、简介、标签、推荐和上架状态现由 Supabase 提供，登录 `/admin` 或 `/admin/services` 修改。完整使用说明见 [ADMIN.md](./ADMIN.md)。
+当前优先通过 GitHub 推送触发 Netlify 自动部署，SPA fallback 由 `netlify.toml` 提供。
+
+- 本地备用服务资料、详情说明、FAQ：`src/data/services.js`（成功读取数据库时，经营字段以数据库为准）
 - 网站名称与联系方式：`src/config/site.js`
 - 环境变量示例：`.env.example`
 - 页面结构与路由渲染：`main.js`
