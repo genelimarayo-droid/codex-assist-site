@@ -1,6 +1,8 @@
 export const services = [
   {
     id: 'relay', number: '01', name: '中转方案', shortName: '中转', badge: '入门方案',
+    chooserPrompt: '我已经有自己的账号', chooserLabel: '选择中转方案',
+    priceType: 'fixed', recommended: false, published: true, sortOrder: 1,
     description: '适合已经拥有账号，希望降低配置门槛、快速开始使用的用户。', price: 49.9, priceUnit: '次', category: '已有账号',
     suitableFor: ['已经有自己的 Codex 账号', '不想花时间处理连接与基础配置', '希望有人带着完成初次使用'],
     features: ['配置连接方案', '基础环境安装指导', '常用设置说明', '使用过程答疑'],
@@ -14,6 +16,8 @@ export const services = [
   },
   {
     id: 'plus-account', number: '02', name: 'Codex 成品账号 + Plus', shortName: '成品账号 + Plus', badge: '直接开始',
+    chooserPrompt: '我没有账号，想直接使用', chooserLabel: '选择成品账号 + Plus',
+    priceType: 'fixed', recommended: true, published: true, sortOrder: 2,
     description: '已完成基础配置，适合希望减少自行配置时间、直接开始使用的用户。', price: 209.9, priceUnit: '套', category: '开箱即用',
     suitableFor: ['没有现成账号或不想自行配置', '希望尽快开始使用 Codex', '需要 Plus 服务的用户'],
     features: ['已完成基础配置', '包含 Plus 服务（期限以实际商品说明为准）', '安装与配置说明', '基础使用答疑'],
@@ -27,6 +31,8 @@ export const services = [
   },
   {
     id: 'new-account', number: '03', name: '从 0 配置专属账号', shortName: '从 0 配置', badge: '账号属于你',
+    chooserPrompt: '我想要完全属于自己的账号', chooserLabel: '选择从 0 配置',
+    priceType: 'consultation', recommended: false, published: true, sortOrder: 3,
     description: '使用客户自己的信息，协助完成注册、基础配置和 Codex 环境安装。', price: null, priceUnit: '咨询', category: '专属配置',
     suitableFor: ['没有账号，想从零开始', '希望账号由自己持有和管理', '需要安装与配置陪伴'],
     features: ['使用客户自己的信息', '协助完成账号注册', '完成基础环境安装', '配置完成后交付给客户'],
@@ -40,6 +46,8 @@ export const services = [
   },
   {
     id: 'white-account', number: '04', name: 'Codex 白号', shortName: '白号', badge: '基础账号',
+    chooserPrompt: '我只需要一个基础账号', chooserLabel: '选择 Codex 白号',
+    priceType: 'consultation', recommended: false, published: true, sortOrder: 4,
     description: '已注册、无 Plus 的基础账号，适合只需要基础使用条件的用户。', price: null, priceUnit: '咨询', category: '基础账号',
     suitableFor: ['已经有自己的使用方式', '暂时不需要 Plus', '只需要一个基础账号'],
     features: ['已注册基础账号', '不包含 Plus', '基础交付说明', '使用问题答疑'],

@@ -1,11 +1,13 @@
-import { siteConfig } from './src/config/site.js'
+import { siteConfig as rawSiteConfig } from './src/data/site.js'
 import { services as localServices } from './src/data/services.js'
-import { publicSupabase, readServices } from './src/lib/supabase.js'
-import { normalizeService } from './src/lib/service-model.js'
+import { faqs as localFaqs } from './src/data/faqs.js'
 import { escapeTree } from './src/lib/html.js'
 
-let services = []
-let dataNotice = ''
+const siteConfig = escapeTree(rawSiteConfig)
+const faqs = escapeTree(localFaqs)
+const publishedServices = localServices.filter(service => service.published !== false)
+  .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+const services = escapeTree(publishedServices)
 
 const app = document.querySelector('#app')
 const contact = siteConfig.contact
@@ -72,13 +74,13 @@ function homePage() {
 
     <section id="services" class="section-shell services-section"><div class="section-heading"><div><span class="eyebrow">四种服务方式</span><h2>先看清区别，再选适合你的方案</h2></div><p>不做复杂套餐，只把每种方式的适用场景说明白。</p></div><div class="service-grid">${services.map(serviceCard).join('')}</div></section>
 
-    <section id="choose" class="chooser-section"><div class="section-shell"><div class="section-heading light"><div><span class="eyebrow">Still deciding?</span><h2>不知道选哪一种？</h2></div><p>根据你现在的账号状态和使用目标，快速找到对应方案。</p></div><div class="chooser-grid"><div class="choice"><span>我已经有自己的账号</span><b>选择中转方案 <a href="/services/relay">→</a></b></div><div class="choice"><span>我没有账号，想直接使用</span><b>选择成品账号 + Plus <a href="/services/plus-account">→</a></b></div><div class="choice"><span>我想要完全属于自己的账号</span><b>选择从 0 配置 <a href="/services/new-account">→</a></b></div><div class="choice"><span>我只需要一个基础账号</span><b>选择 Codex 白号 <a href="/services/white-account">→</a></b></div></div></div></section>
+    <section id="choose" class="chooser-section"><div class="section-shell"><div class="section-heading light"><div><span class="eyebrow">Still deciding?</span><h2>不知道选哪一种？</h2></div><p>根据你现在的账号状态和使用目标，快速找到对应方案。</p></div><div class="chooser-grid">${services.map(s => `<div class="choice"><span>${s.chooserPrompt || s.suitableFor[0] || s.name}</span><b>${s.chooserLabel || s.name} <a href="/services/${encodeURIComponent(s.id)}">→</a></b></div>`).join('')}</div></div></section>
 
     <section id="compare" class="section-shell compare-section"><div class="section-heading"><div><span class="eyebrow">清晰对比</span><h2>四种方案，一张表看懂</h2></div><p>具体交付以购买前确认的实际服务说明为准。</p></div>${compareTable()}</section>
 
     <section id="process" class="process-section"><div class="section-shell"><div class="section-heading light"><div><span class="eyebrow">服务流程</span><h2>从咨询到开始使用，只有四步</h2></div></div><div class="process-grid"><div class="process-step"><b>01</b><span class="process-line"></span><h3>选择方案</h3><p>根据你的账号状态和目标，先选最合适的方式。</p></div><div class="process-step"><b>02</b><span class="process-line"></span><h3>联系客服</h3><p>说明你的情况，确认服务范围与注意事项。</p></div><div class="process-step"><b>03</b><span class="process-line"></span><h3>完成配置</h3><p>按方案完成账号、环境和基础使用配置。</p></div><div class="process-step"><b>04</b><span class="process-line"></span><h3>开始使用</h3><p>拿到清晰说明，开始你的 Codex 使用流程。</p></div></div></div></section>
 
-    <section id="faq" class="section-shell faq-section"><div class="section-heading"><div><span class="eyebrow">FAQ</span><h2>常见问题</h2></div><p>还没找到答案？可以直接联系我们。</p></div><div class="faq-list"><details><summary>我完全不会安装 Codex，可以购买吗？<span>+</span></summary><p>可以。我们提供安装和基础配置指导，会根据你选择的方案说明具体步骤。</p></details><details><summary>账号是我自己的吗？<span>+</span></summary><p>“从 0 配置专属账号”方案使用客户自己的信息，账号由客户自己持有和管理；其他方案的账号归属以实际交付规则说明为准。</p></details><details><summary>注册验证需要我本人完成吗？<span>+</span></summary><p>如果注册步骤需要客户本人验证，请由客户自行完成，我们提供流程指导，不代替客户规避平台的安全验证。</p></details><details><summary>我已经有账号了，应该选哪种？<span>+</span></summary><p>如果你希望降低配置门槛，可以先了解中转方案；如果想要完整安装指导，也可以直接咨询我们。</p></details></div></section>
+    <section id="faq" class="section-shell faq-section"><div class="section-heading"><div><span class="eyebrow">FAQ</span><h2>常见问题</h2></div><p>还没找到答案？可以直接联系我们。</p></div><div class="faq-list">${faqs.map(faq => `<details><summary>${faq.q}<span>+</span></summary><p>${faq.a}</p></details>`).join('')}</div></section>
 
     <section id="contact" class="contact-section"><div class="section-shell contact-inner"><div><span class="eyebrow">准备开始了吗？</span><h2>把你的情况告诉我们，<br /><em>一起选对方案。</em></h2></div><div class="contact-actions"><a class="button button-light" href="tel:${contact.phone}">电话咨询 <span>↗</span></a><button class="button button-outline-light copy-contact" data-copy="${contact.wechat}">复制微信号 <span>⧉</span></button><small>微信：${contact.wechat} · ${contact.hours}</small></div></div></section>
   </main>${footer()}${mobileMenu()}`
@@ -136,40 +138,10 @@ async function start() {
     return
   }
   const match = location.pathname.match(/^\/services\/([^/]+)\/?$/)
-  // Keep the page usable while requesting prices; do not flash outdated prices.
-  app.innerHTML = homePage()
-  wireInteractions()
-  const status = document.createElement('p')
-  status.className = 'section-shell'
-  status.setAttribute('role', 'status')
-  status.textContent = '正在加载最新服务信息…'
-  document.querySelector('.service-grid').before(status)
-  try {
-    if (!publicSupabase) throw new Error('未配置公开数据连接')
-    const rows = await readServices(publicSupabase)
-    services = rows.map(normalizeService).filter(service => service.published)
-    if (!services.length) dataNotice = '暂无上架服务，欢迎联系咨询。'
-  } catch {
-    // Retain the local content for availability, but never advertise stale prices as current.
-    services = localServices.map(s => ({ ...s, price: null, priceType: 'consultation', recommended: s.id === 'plus-account' }))
-    dataNotice = '最新价格暂时无法加载，具体价格请咨询。刷新页面可重试。'
-  }
-  const selectedService = match ? services.find(s => encodeURIComponent(s.id) === match[1]) : null
-  const safeServices = services.map(escapeTree)
-  services = safeServices
+  const selectedService = match ? publishedServices.find(s => encodeURIComponent(s.id) === match[1]) : null
   app.innerHTML = match
     ? (selectedService ? detailPage(escapeTree(selectedService)) : `${header()}<main class="section-shell" style="padding:80px 0"><h1>此服务不存在或已下架</h1><a href="/">返回首页</a></main>${footer()}`)
     : homePage()
-  if (dataNotice) {
-    const notice = document.createElement('p')
-    notice.className = 'section-shell'; notice.setAttribute('role', 'status'); notice.textContent = dataNotice
-    document.querySelector('main').prepend(notice)
-  }
-  // Remove fixed chooser links for services that are no longer published.
-  document.querySelectorAll('.choice').forEach(choice => {
-    const id = choice.querySelector('a').getAttribute('href').split('/').pop()
-    if (!services.some(service => service.id === id)) choice.remove()
-  })
   updateMeta(selectedService)
   wireInteractions()
   if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView()

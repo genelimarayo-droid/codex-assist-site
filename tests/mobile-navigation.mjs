@@ -32,6 +32,8 @@ for (const [name, engine, launch, device] of engines) {
         assert.equal(await overlay.isVisible(), true)
       }
       await page.goto(baseURL, { waitUntil: 'networkidle' })
+      // Keep rapid automated taps from racing the previous anchor's smooth scroll.
+      await page.addStyleTag({ content: 'html{scroll-behavior:auto!important}' })
       await closed()
       await open()
       await toggle.tap()

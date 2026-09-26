@@ -1,5 +1,7 @@
 # 管理员后台
 
+> 历史资料：自 2026-09-26 起停止后台开发，前台改由 `src/data` 中的本地文件维护。下述数据库更新流程不再影响当前前台，请按 README.md 和 AGENTS.md 的代码发布流程维护网站。
+
 现有 Vite + 原生 JavaScript 项目，使用 Supabase Auth 和数据库现有 RLS。
 未改动数据库结构、管理员账号、Netlify 项目或 Cloudflare 部署。
 

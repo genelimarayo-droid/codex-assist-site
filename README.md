@@ -1,67 +1,46 @@
 # Codex Assist
 
-Codex 安装、配置与账号服务展示网站。项目使用 Vite + 原生 JavaScript，部署后不依赖本地电脑持续运行。
+现有 Vite + 原生 JavaScript 服务展示网站。正式站点：https://codex-assist-site.netlify.app
 
-## 本地开发
+## 维护方式
 
-```bash
-pnpm install
-pnpm dev
-```
+用户用自然语言、页面元素或浏览器批注提出修改，由 Codex 定位代码、修改、构建、提交和推送。
+除非用户明确重新要求，不再开发独立后台、CMS、管理员登录或网页编辑器。
 
-也可以使用 `npm install` 和 `npm run dev`。
+前台经营数据以代码为准，不读取 Supabase，不需要数据库在线即可展示服务与价格。
 
-## 构建
+- `src/data/services.js`：服务、价格、上架与推荐状态、排序、选择卡片、服务详情和服务 FAQ。
+- `src/data/faqs.js`：首页 FAQ。
+- `src/data/site.js`：网站名称与联系方式。直接编辑这里，旧联系环境变量不再覆盖这些值。
+- `main.js`：页面渲染及导航交互。
+- `styles.css`、`public/styles.css`：现有样式，两份保持同步。
 
-```bash
-pnpm run build
-```
+`priceType` 支持 fixed / consultation / free / hidden；固定价格使用数字，咨询价格使用 null。
+服务设为 `published: false` 后不显示于前台。
 
-Vercel 的构建设置：
+项目仍使用 JavaScript，不需要为了数据文件改成 TypeScript。
+原后台代码及 ADMIN.md 保留为历史资料，已停止开发；后台修改不会改变当前前台数据。
 
-- Framework Preset: `Vite`
-- Build Command: `npm run build`
-- Output Directory: `dist`
-- Install Command: `npm install`
-
-## 内容维护
-
-价格、名称、简介、标签、推荐和上架状态现由 Supabase 提供，登录 `/admin` 或 `/admin/services` 修改。完整使用说明见 [ADMIN.md](./ADMIN.md)。
-当前优先通过 GitHub 推送触发 Netlify 自动部署，SPA fallback 由 `netlify.toml` 提供。
-
-- 本地备用服务资料、详情说明、FAQ：`src/data/services.js`（成功读取数据库时，经营字段以数据库为准）
-- 网站名称与联系方式：`src/config/site.js`
-- 环境变量示例：`.env.example`
-- 页面结构与路由渲染：`main.js`
-- 视觉样式：`styles.css`
-
-复制 `.env.example` 为 `.env` 后，可配置：
-
-```text
-VITE_CONTACT_WECHAT=
-VITE_CONTACT_QQ=
-VITE_CONTACT_PHONE=
-VITE_CONTACT_HOURS=
-```
-
-这些值会在构建时写入公开网页，只能填写公开联系方式，不能填写密码、API Key 或其他私密信息。
-
-## GitHub + Vercel 发布
-
-1. 在 GitHub 新建一个空仓库。
-2. 在项目目录执行：
+## 开发与发布
 
 ```bash
-git init
-git add .
-git commit -m "Initial Codex Assist site"
-git branch -M main
-git remote add origin <你的 GitHub 仓库地址>
-git push -u origin main
+npm run dev
+npm run build
+git status
+git add <本次修改文件>
+git commit -m "Describe the change"
+git push origin main
 ```
 
-3. 在 Vercel 选择 `Add New Project`，导入这个 GitHub 仓库。
-4. 使用上面的 Vite 构建设置并点击 Deploy。
-5. 后续每次 push 到 `main`，Vercel 会自动构建并发布新版本。
+GitHub：https://github.com/genelimarayo-droid/codex-assist-site
 
-`vercel.json` 已配置 `/services/*` 的 SPA 回退，因此详情页可以直接刷新。`public/_redirects` 仍保留，方便同一份 `dist` 产物部署到 Netlify。
+Netlify 自动从 GitHub 构建，命令为 `npm run build`，发布目录为 `dist`。
+`netlify.toml` 保留 SPA fallback。推送后检查正式站点版本及本次修改。
+不提交密钥、密码、依赖缓存或构建产物，不混入无关本地改动。
+Cloudflare 旧部署保留。
+
+## 导航回归
+
+`tests/mobile-navigation.mjs` 可用 Playwright + Edge/WebKit 检查 375/390/430px、菜单开关、遮罩、导航项、刷新和桌面切换。
+将 `PLAYWRIGHT_MODULE` 指向 Playwright 的 `index.mjs`，可选 `SITE_URL` 指定正式站点；默认使用本地 5173 端口。
+旧 `tests/admin-flow.mjs` 是历史后台流程测试，不用于当前静态前台验收。
