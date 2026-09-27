@@ -18,7 +18,7 @@ const price = (service) => {
   if (type === 'hidden') return ''
   if (type === 'free') return '<span class="price-consult">免费</span>'
   if (type === 'consultation' || !Number.isFinite(service.price)) return '<span class="price-consult">咨询</span>'
-  return `${Number.isFinite(service.originalPrice) && service.originalPrice > service.price ? `<del style="font-size:16px;color:#758197">¥${service.originalPrice}</del> ` : ''}<span class="price-currency">¥</span>${new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 1, maximumFractionDigits: 2 }).format(service.price)}<small> / ${service.priceUnit}</small>`
+  return `${Number.isFinite(service.originalPrice) && service.originalPrice > service.price ? `<del style="font-size:16px;color:#758197">¥${service.originalPrice}</del> ` : ''}<span class="price-currency">¥</span>${new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(service.price)}${service.priceUnit ? `<small> / ${service.priceUnit}</small>` : ''}`
 }
 
 function header(active = 'home') {
@@ -40,7 +40,11 @@ function mobileMenu() {
 }
 
 function footer() {
-  return `<footer class="site-footer"><div class="footer-main"><a class="brand" href="/"><span class="brand-symbol">&gt;_</span><span><strong>${siteConfig.brand}</strong><small>${siteConfig.eyebrow}</small></span></a><p>帮助普通用户更清楚地完成 Codex 安装、配置与使用准备。</p><div class="footer-contact"><span>咨询微信：<b>${contact.wechat}</b></span><span>服务时间：${contact.hours}</span></div></div><div class="footer-bottom"><span>© 2026 ${siteConfig.brand}</span><span>账号信息不会展示在网站页面中</span></div></footer>`
+  return `<footer class="site-footer"><div class="footer-main"><a class="brand" href="/"><span class="brand-symbol">&gt;_</span><span><strong>${siteConfig.brand}</strong><small>${siteConfig.eyebrow}</small></span></a><p>帮助普通用户更清楚地完成 Codex 安装、配置与使用准备。</p><div class="footer-contact"><span>咨询微信：${contact.wechats.map(id => `<b>${id}</b>`).join('、')}</span><span>服务时间：${contact.hours}</span></div></div><div class="footer-bottom"><span>© 2026 ${siteConfig.brand}</span><span>账号信息不会展示在网站页面中</span></div></footer>`
+}
+
+function contactActions() {
+  return `<div class="contact-actions">${contact.wechats.map(id => `<button class="button button-outline-light copy-contact" data-copy="${id}" type="button">复制 ${id} <span>⧉</span></button>`).join('')}<small>微信：${contact.wechats.join('、')} · ${contact.hours}</small></div>`
 }
 
 function serviceCard(service) {
@@ -82,7 +86,7 @@ function homePage() {
 
     <section id="faq" class="section-shell faq-section"><div class="section-heading"><div><span class="eyebrow">FAQ</span><h2>常见问题</h2></div><p>还没找到答案？可以直接联系我们。</p></div><div class="faq-list">${faqs.map(faq => `<details><summary>${faq.q}<span>+</span></summary><p>${faq.a}</p></details>`).join('')}</div></section>
 
-    <section id="contact" class="contact-section"><div class="section-shell contact-inner"><div><span class="eyebrow">准备开始了吗？</span><h2>把你的情况告诉我们，<br /><em>一起选对方案。</em></h2></div><div class="contact-actions"><a class="button button-light" href="tel:${contact.phone}">电话咨询 <span>↗</span></a><button class="button button-outline-light copy-contact" data-copy="${contact.wechat}">复制微信号 <span>⧉</span></button><small>微信：${contact.wechat} · ${contact.hours}</small></div></div></section>
+    <section id="contact" class="contact-section"><div class="section-shell contact-inner"><div><span class="eyebrow">准备开始了吗？</span><h2>把你的情况告诉我们，<br /><em>一起选对方案。</em></h2></div>${contactActions()}</div></section>
   </main>${footer()}${mobileMenu()}`
 }
 
@@ -92,7 +96,7 @@ function detailPage(service) {
     <section class="section-shell detail-content"><div class="detail-two-col"><div><span class="eyebrow">适合谁</span><h2>这个方案适合这样的你</h2></div><ul class="check-list">${service.suitableFor.map((item) => `<li>${icon('✓')}<span>${item}</span></li>`).join('')}</ul></div><div class="detail-two-col includes-block"><div><span class="eyebrow">你将获得什么</span><h2>把配置交给清晰的流程</h2></div><div class="include-grid">${service.features.map((item, i) => `<div class="include-item"><span>${['⌘','◎','→','✓'][i % 4]}</span><b>${item}</b></div>`).join('')}</div></div></section>
     <section class="detail-process-section"><div class="section-shell"><div class="section-heading light"><div><span class="eyebrow">服务流程</span><h2>确认后，我们按这几步完成</h2></div></div><div class="detail-process-list">${service.process.map((item, i) => `<div><b>0${i + 1}</b><span>${item}</span></div>`).join('')}</div></div></section>
     <section class="section-shell detail-faq"><div class="section-heading"><div><span class="eyebrow">FAQ</span><h2>关于这个方案</h2></div></div><div class="faq-list">${faqMarkup}</div></section>
-    <section class="contact-section detail-contact"><div class="section-shell contact-inner"><div><span class="eyebrow">下一步</span><h2>确认适合你的服务，<br /><em>再开始配置。</em></h2></div><div class="contact-actions"><a class="button button-light" href="tel:${contact.phone}">立即咨询 <span>↗</span></a><button class="button button-outline-light copy-contact" data-copy="${contact.wechat}">复制微信号 <span>⧉</span></button><small>微信：${contact.wechat} · ${contact.hours}</small></div></div></section>
+    <section class="contact-section detail-contact"><div class="section-shell contact-inner"><div><span class="eyebrow">下一步</span><h2>确认适合你的服务，<br /><em>再开始配置。</em></h2></div>${contactActions()}</div></section>
   </main>${footer()}${mobileMenu()}`
 }
 
@@ -126,7 +130,7 @@ function wireInteractions() {
   window.addEventListener('resize', () => { if (window.innerWidth > 760) setMenu(false) }, options)
   window.addEventListener('pageshow', () => setMenu(false), options)
   document.querySelectorAll('.copy-contact').forEach((button) => button.addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(button.dataset.copy); button.innerHTML = '已复制微信号 <span>✓</span>' } catch { button.innerHTML = `微信：${button.dataset.copy}` }
+    try { await navigator.clipboard.writeText(button.dataset.copy); button.textContent = `已复制 ${button.dataset.copy} ✓` } catch { button.textContent = `微信：${button.dataset.copy}` }
   }, options))
   document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => setMenu(false), options))
 }
